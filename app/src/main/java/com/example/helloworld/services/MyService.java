@@ -68,12 +68,6 @@ public class MyService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "on start command");
-        return START_STICKY;
-    }
-
-    @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
@@ -115,6 +109,8 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "on destroyed");
+        cancelTimer();
+        stopSelf();
         super.onDestroy();
     }
 

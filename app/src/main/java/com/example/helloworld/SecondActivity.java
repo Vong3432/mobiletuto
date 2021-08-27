@@ -47,6 +47,7 @@ public class SecondActivity extends AppCompatActivity {
     ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "service disconnected");
             Toast.makeText(SecondActivity.this, "Service is disconnected", Toast.LENGTH_SHORT).show();
             mBounded = false;
             myService = null;
@@ -54,6 +55,7 @@ public class SecondActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "service connected");
             Toast.makeText(SecondActivity.this, "Service is connected", Toast.LENGTH_SHORT).show();
             mBounded = true;
             MyService.LocalBinder mLocalBinder = (MyService.LocalBinder)service;
@@ -133,14 +135,6 @@ public class SecondActivity extends AppCompatActivity {
         Log.d(TAG, "on stop");
         isStopped = true;
 
-        if(isEndClicked == true) {
-            if(mBounded) {
-                unbindService(mConnection);
-                mBounded = false;
-            }
-            unregisterReceiver(broadcastReceiver);
-        }
-
         super.onStop();
     }
 
@@ -157,6 +151,17 @@ public class SecondActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "on destroyed");
+
+        if(isEndClicked == true) {
+            if(mBounded) {
+                unbindService(mConnection);
+                mBounded = false;
+            }
+            unregisterReceiver(broadcastReceiver);
+        }
+
+        unregisterReceiver(broadcastReceiver);
+        isEndClicked = true;
         super.onDestroy();
     }
 }
