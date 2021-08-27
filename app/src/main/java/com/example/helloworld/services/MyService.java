@@ -110,7 +110,6 @@ public class MyService extends Service {
     public void onDestroy() {
         Log.d(TAG, "on destroyed");
         cancelTimer();
-        stopSelf();
         super.onDestroy();
     }
 
