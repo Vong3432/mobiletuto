@@ -84,7 +84,6 @@ public class MyService extends Service {
         }
     }
 
-
     public void showNotification() {
 
         String NOTIFICATION_CHANNEL_ID = "MY_SERVICE_CHANNEL";

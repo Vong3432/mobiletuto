@@ -31,53 +31,19 @@ public class SecondActivity extends AppCompatActivity {
 
     int counter = 0;
     int seconds = 0;
-    Boolean isEndClicked = false;
     Boolean isStopped = false;
-    //Declare timer
-//    CountDownTimer cTimer = null;
+    Boolean isEndClicked = false;
 
-//    //start timer function
-//    void startTimer() {
-//        cTimer = new CountDownTimer(30000, 1000) {
-//            public void onTick(long millisUntilFinished) {
-////                long sec = (TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
-////                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
-//                seconds++;
-//                txt_seconds.setText("Sec: " + seconds);
-//            }
-//            public void onFinish() {
-//                if(!isEndClicked) {
-//                    cTimer.start();
-//                } else {
-//                    cTimer = null;
-//                    counter = 0;
-//                }
-//            }
-//        };
-//        cTimer.start();
-//    }
-
-
-//    //cancel timer
-//    void cancelTimer() {
-//        if(cTimer!=null)
-//            cTimer.cancel();
-//
-////        txt_seconds.setText("");
-////        txt_count.setText("");
-//    }
-
+    private boolean mBounded;
+    private MyService myService;
 
     @Override
     protected void onStart() {
         super.onStart();
         Intent mIntent = new Intent(this, MyService.class);
-        registerReceiver(broadcastReceiver, new IntentFilter(MyService.BROADCAST_ACTION));
         bindService(mIntent, mConnection, BIND_AUTO_CREATE);
     }
 
-    private boolean mBounded;
-    private MyService myService;
     ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -101,10 +67,10 @@ public class SecondActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             //Update Your UI here..
             txt_seconds.setText("Current sec:"+ intent.getIntExtra("sec", 0)+"");
+            seconds = intent.getIntExtra("sec", seconds);
 
             if(isStopped == true) myService.showNotification();
         }
-
     };
 
     @Override
@@ -130,6 +96,7 @@ public class SecondActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 myService.cancelTimer();
+                isEndClicked = true;
                 Intent intent = new Intent(view.getContext(), ThirdActivity.class);
                 intent.putExtra(COUNTER_MESSAGE, Integer.toString(counter));
                 intent.putExtra(SECOND_MESSAGE, Integer.toString(seconds));
@@ -150,6 +117,8 @@ public class SecondActivity extends AppCompatActivity {
     protected void onResume() {
         Log.d(TAG, "on resume");
         isStopped = false;
+        isEndClicked = false;
+        registerReceiver(broadcastReceiver, new IntentFilter(MyService.BROADCAST_ACTION));
         super.onResume();
     }
 
@@ -163,6 +132,15 @@ public class SecondActivity extends AppCompatActivity {
     protected void onStop() {
         Log.d(TAG, "on stop");
         isStopped = true;
+
+        if(isEndClicked == true) {
+            if(mBounded) {
+                unbindService(mConnection);
+                mBounded = false;
+            }
+            unregisterReceiver(broadcastReceiver);
+        }
+
         super.onStop();
     }
 
@@ -180,9 +158,5 @@ public class SecondActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "on destroyed");
         super.onDestroy();
-        if(mBounded) {
-            unbindService(mConnection);
-            mBounded = false;
-        }
     }
 }
