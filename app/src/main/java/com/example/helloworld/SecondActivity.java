@@ -40,8 +40,6 @@ public class SecondActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Intent mIntent = new Intent(this, MyService.class);
-        bindService(mIntent, mConnection, BIND_AUTO_CREATE);
     }
 
     ServiceConnection mConnection = new ServiceConnection() {
@@ -98,6 +96,7 @@ public class SecondActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 myService.cancelTimer();
+                unregisterReceiver(broadcastReceiver);
                 isEndClicked = true;
                 Intent intent = new Intent(view.getContext(), ThirdActivity.class);
                 intent.putExtra(COUNTER_MESSAGE, Integer.toString(counter));
@@ -111,6 +110,9 @@ public class SecondActivity extends AppCompatActivity {
 
         txt_count.setText("Current count: " + counter);
         txt_hello.setText("Hello " + name);
+
+        Intent mIntent = new Intent(this, MyService.class);
+        bindService(mIntent, mConnection, BIND_AUTO_CREATE);
 
 //        startTimer();
     }
@@ -135,6 +137,13 @@ public class SecondActivity extends AppCompatActivity {
         Log.d(TAG, "on stop");
         isStopped = true;
 
+        if(isEndClicked == true) {
+            if(mBounded) {
+                unbindService(mConnection);
+                mBounded = false;
+            }
+        }
+
         super.onStop();
     }
 
@@ -151,17 +160,8 @@ public class SecondActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "on destroyed");
-
-        if(isEndClicked == true) {
-            if(mBounded) {
-                unbindService(mConnection);
-                mBounded = false;
-            }
-            unregisterReceiver(broadcastReceiver);
-        }
-
-        unregisterReceiver(broadcastReceiver);
         isEndClicked = true;
+        unregisterReceiver(broadcastReceiver);
         super.onDestroy();
     }
 }

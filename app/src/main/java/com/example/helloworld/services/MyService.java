@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
@@ -24,6 +25,7 @@ public class MyService extends Service {
 
     IBinder mBinder = new LocalBinder();
     boolean isRunning = false;
+    boolean shouldDisposeTimer = false; // determine whether timer should close completely
 
     //Declare timer
     CountDownTimer cTimer = null;
@@ -34,7 +36,7 @@ public class MyService extends Service {
     void startTimer() {
         if(isRunning) return;
 
-        cTimer = new CountDownTimer(30000, 1000) {
+        cTimer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
                 sss++;
                 Intent intent = new Intent(BROADCAST_ACTION);
@@ -45,9 +47,13 @@ public class MyService extends Service {
                 Log.d("print", String.valueOf(sss));
             }
             public void onFinish() {
-                cTimer = null;
-                isRunning = false;
-                sss= 0;
+                if(shouldDisposeTimer) {
+                    cTimer = null;
+                    isRunning = false;
+                    sss= 0;
+                } else {
+                    cTimer.start();
+                }
             }
         };
         cTimer.start();
@@ -55,8 +61,10 @@ public class MyService extends Service {
 
     //cancel timer
     public void cancelTimer() {
-        if(cTimer!=null)
+        if(cTimer!=null) {
             cTimer.cancel();
+            shouldDisposeTimer = true;
+        }
     }
 
     @Override
@@ -84,13 +92,15 @@ public class MyService extends Service {
         String channelName = "Countdown";
 
         // setup channel for headsup
-        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_HIGH);
-        chan.setDescription("Channel for sec");
-//        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "Setup notification channel for above Android Oreo");
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_HIGH);
+            chan.setDescription("Channel for sec");
 
-        // Register channel with system
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(chan);
+            // Register channel with system
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(chan);
+        }
 
         // setup notification
         Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
