@@ -96,6 +96,7 @@ public class SecondActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 myService.cancelTimer();
+                unbindMyService();
                 unregisterReceiver(broadcastReceiver);
                 isEndClicked = true;
                 Intent intent = new Intent(view.getContext(), ThirdActivity.class);
@@ -136,24 +137,12 @@ public class SecondActivity extends AppCompatActivity {
     protected void onStop() {
         Log.d(TAG, "on stop");
         isStopped = true;
-
-        if(isEndClicked == true) {
-            if(mBounded) {
-                unbindService(mConnection);
-                mBounded = false;
-            }
-        }
-
         super.onStop();
     }
 
     @Override
     protected void onRestart() {
         Log.d(TAG, "on restart");
-//        Intent notificationIntent = new Intent(this, MyService.class);
-//
-//        if(notificationIntent != null)
-//            stopService(notificationIntent);
         super.onRestart();
     }
 
@@ -161,7 +150,15 @@ public class SecondActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "on destroyed");
         isEndClicked = true;
+        unbindMyService();
         unregisterReceiver(broadcastReceiver);
         super.onDestroy();
+    }
+
+    private void unbindMyService() {
+        if(mBounded) {
+            unbindService(mConnection);
+            mBounded = false;
+        }
     }
 }
