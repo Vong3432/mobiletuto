@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HelloWorld</string>
+    <string name="txt_hello_world">Prayer Counter</string>
+    <string name="txt_prayer_name">Name</string>
+    <string name="txt_prayer_goal">Prayer Goal</string>
+    <string name="txt_second_page_text">Click on the Button</string>
+    <string name="local_service_started">notification_service_started</string>
+
+</resources>
